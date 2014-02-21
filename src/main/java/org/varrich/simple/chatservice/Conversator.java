@@ -1,82 +1,56 @@
 package org.varrich.simple.chatservice;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Project:  ChatService
  * Created by Daniel L. Varrichione on 2/12/14.
  */
-public class Conversator implements Runnable {
+public class Conversator {
 
-    private BufferedReader bufferedreader;
-    private PrintWriter printwriter;
-    private long threadid;
-    private boolean finished;
+    private ThreadSafeReader threadSafeReader;
+    private ThreadSafeWriter threadSafeWriter;
+    private String conversationId;
+    private Chatter chatter;
 
     private Conversator(){}
 
-    public static Conversator newInstance( BufferedReader bufferedreader, PrintWriter printwriter )
+    public static Conversator newInstance( BufferedReader bufferedreader, PrintWriter printwriter, Chatter chatter )
     {
         Conversator instance = new Conversator();
-        instance.setBufferedreader( bufferedreader );
-        instance.setPrintwriter( printwriter );
+        instance.setThreadSafeReader( ThreadSafeReader.newInstance( bufferedreader, instance ) );
+        instance.setThreadSafeWriter( ThreadSafeWriter.newInstance( printwriter, instance ) );
+        instance.setChatter( chatter );
         return instance;
     }
 
-    public BufferedReader getBufferedreader() {
-        return bufferedreader;
+    public ThreadSafeReader getThreadSafeReader() {
+        return threadSafeReader;
     }
 
-    public void setBufferedreader(BufferedReader bufferedreader ) {
-        this.bufferedreader = bufferedreader;
+    public void setThreadSafeReader(ThreadSafeReader threadSafeReader) {
+        this.threadSafeReader = threadSafeReader;
     }
 
-    public PrintWriter getPrintwriter() {
-        return printwriter;
+    public ThreadSafeWriter getThreadSafeWriter() {
+        return threadSafeWriter;
     }
 
-    public void setPrintwriter(PrintWriter printwriter) {
-        this.printwriter = printwriter;
+    public void setThreadSafeWriter(ThreadSafeWriter threadSafeWriter) {
+        this.threadSafeWriter = threadSafeWriter;
     }
 
-    public long getThreadid() {
-        return threadid;
+    public Chatter getChatter() { return chatter; }
+
+    public void setChatter(Chatter chatter) { this.chatter = chatter; }
+
+    public String getConversationId() {
+        return conversationId;
     }
 
-    public void setThreadid(long threadid) {
-        this.threadid = threadid;
-    }
-
-    public boolean isFinished() {
-        return finished;
-    }
-
-    public void setFinished(boolean finished) {
-        this.finished = finished;
-    }
-
-    public synchronized void startConversing()
-    {
-        try{
-            while( !this.isFinished() )
-            {
-                String someString = this.getBufferedreader().readLine();
-                System.out.println( "Conversator" + this.getThreadid() + " just read:  " + someString );
-                this.getPrintwriter().println("Echoing:  " + someString );
-            }
-            System.out.println( "Conversator" + this.getThreadid() + " isFinished=" + this.isFinished() + " Shutting down reader" );
-
-            this.getPrintwriter().close();
-        }
-        catch( IOException e )
-        {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void run()
-    {
-        this.startConversing();
+    public void setConversationId(String conversationId) {
+        this.conversationId = conversationId;
     }
 }

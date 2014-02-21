@@ -16,6 +16,7 @@ public class Chatter implements Runnable {
     private int port;
     private boolean finished = true;
     private List<Conversator> list;
+    private MessageQueuer messageQueuer;
     private ServerSocket listener;
 
     private Chatter(){}
@@ -51,6 +52,10 @@ public class Chatter implements Runnable {
         this.list = list;
     }
 
+    public MessageQueuer getMessageQueuer() { return messageQueuer; }
+
+    public void setMessageQueuer(MessageQueuer messageQueuer) { this.messageQueuer = messageQueuer; }
+
     public ServerSocket getListener() {
         return listener;
     }
@@ -69,6 +74,7 @@ public class Chatter implements Runnable {
 
             this.setFinished( false );
             this.setList( new ArrayList<Conversator>() );
+            this.setMessageQueuer( MessageQueuer.newInstance() );
 
             Socket client = null;
             while( !this.isFinished() )
@@ -77,15 +83,9 @@ public class Chatter implements Runnable {
 
                 Conversator conversator = Conversator.newInstance(
                         new BufferedReader(new InputStreamReader( client.getInputStream() )),
-                        new PrintWriter(client.getOutputStream(), true)
+                        new PrintWriter(client.getOutputStream(), true),
+                        this
                 );
-
-                System.out.println( "Chatter:  Spawning new conversation thread" );
-                Thread t = new Thread( conversator );
-                t.start();
-                conversator.setThreadid( t.getId() );
-
-                System.out.println("Chatter:  Adding Conversation to list");
                 this.getList().add(conversator);
             }
 
